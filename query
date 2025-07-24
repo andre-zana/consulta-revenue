@@ -1,0 +1,317 @@
+SELECT 
+    Mes, 
+    Ano, 
+    SBC, 
+    Extrema, 
+    Serra, 
+    Total_RS
+FROM (
+    -- ==========================================
+    -- PARTE 1: DADOS MENSAIS POR FILIAL
+    -- ==========================================
+    SELECT
+        -- Tradução do Mês (número para nome)
+        CASE date_format(purchased_at, '%m')
+            WHEN '01' THEN 'Janeiro'
+            WHEN '02' THEN 'Fevereiro'
+            WHEN '03' THEN 'Março'
+            WHEN '04' THEN 'Abril'
+            WHEN '05' THEN 'Maio'
+            WHEN '06' THEN 'Junho'
+            WHEN '07' THEN 'Julho'
+            WHEN '08' THEN 'Agosto'
+            WHEN '09' THEN 'Setembro'
+            WHEN '10' THEN 'Outubro'
+            WHEN '11' THEN 'Novembro'
+            WHEN '12' THEN 'Dezembro'
+        END AS Mes,
+        
+        -- Extração do Ano
+        date_format(purchased_at, '%Y') AS Ano,
+        
+        -- Faturamento SBC/Barueri (formatado com separadores de milhares)
+        regexp_replace(
+            format('%.2f', 
+                SUM(CASE 
+                    WHEN filial = 'sbc' OR filial = 'barueri' 
+                    THEN total 
+                    ELSE 0 
+                END)
+            ), 
+            '(\d)(?=(\d{3})+\.)', 
+            '$1'
+        ) AS SBC,
+        
+        -- Faturamento Extrema (formatado)
+        regexp_replace(
+            format('%.2f', 
+                SUM(CASE 
+                    WHEN filial = 'extrema' 
+                    THEN total 
+                    ELSE 0 
+                END)
+            ), 
+            '(\d)(?=(\d{3})+\.)', 
+            '$1'
+        ) AS Extrema,
+        
+        -- Faturamento Serra (formatado)
+        regexp_replace(
+            format('%.2f', 
+                SUM(CASE 
+                    WHEN filial = 'serra' 
+                    THEN total 
+                    ELSE 0 
+                END)
+            ), 
+            '(\d)(?=(\d{3})+\.)', 
+            '$1'
+        ) AS Serra,
+        
+        -- Total Geral Mensal (formatado)
+        regexp_replace(
+            format('%.2f', SUM(total)), 
+            '(\d)(?=(\d{3})+\.)', 
+            '$1'
+        ) AS Total_RS,
+        
+        -- Campo para ordenação (dados mensais primeiro)
+        1 AS ordem
+
+    FROM datalake_gold.orders_channel
+    WHERE 
+        -- Período: a partir de 1º de julho de 2024
+        purchased_at >= TIMESTAMP '2024-07-01 00:00:00'
+        AND purchased_at <= CURRENT_TIMESTAMP
+        -- Apenas pedidos autorizados
+        AND authorized_at IS NOT NULL
+        -- Excluir pedidos cancelados
+        AND cancelled_at IS NULL
+    GROUP BY
+        date_format(purchased_at, '%m'),
+        date_format(purchased_at, '%Y')
+
+UNION ALL
+
+    -- ==========================================
+    -- PARTE 2: LINHA DE TOTAL 2024
+    -- ==========================================
+    SELECT
+        'Subtotal' AS Mes,
+        '2024' AS Ano,
+        
+        -- Total SBC/Barueri (formatado)
+        regexp_replace(
+            format('%.2f', 
+                SUM(CASE 
+                    WHEN filial = 'sbc' OR filial = 'barueri' 
+                    THEN total 
+                    ELSE 0 
+                END)
+            ), 
+            '(\d)(?=(\d{3})+\.)', 
+            '$1'
+        ) AS SBC,
+        
+        -- Total Extrema (formatado)
+        regexp_replace(
+            format('%.2f', 
+                SUM(CASE 
+                    WHEN filial = 'extrema' 
+                    THEN total 
+                    ELSE 0 
+                END)
+            ), 
+            '(\d)(?=(\d{3})+\.)', 
+            '$1'
+        ) AS Extrema,
+        
+        -- Total Serra (formatado)
+        regexp_replace(
+            format('%.2f', 
+                SUM(CASE 
+                    WHEN filial = 'serra' 
+                    THEN total 
+                    ELSE 0 
+                END)
+            ), 
+            '(\d)(?=(\d{3})+\.)', 
+            '$1'
+        ) AS Serra,
+        
+        -- Total Geral de Todas as Filiais (formatado)
+        regexp_replace(
+            format('%.2f', SUM(total)), 
+            '(\d)(?=(\d{3})+\.)', 
+            '$1'
+        ) AS Total_RS,
+        
+        -- Campo para ordenação (total por último)
+        2 AS ordem
+
+    FROM datalake_gold.orders_channel
+    WHERE 
+        -- Mesmo período da primeira parte
+        purchased_at >= TIMESTAMP '2024-07-01 00:00:00'
+        AND purchased_at <= CURRENT_TIMESTAMP
+        AND authorized_at IS NOT NULL
+        AND cancelled_at IS NULL
+
+UNION ALL
+
+    -- ==========================================
+    -- PARTE 3: LINHA DE TOTAL 2025
+    -- ==========================================
+    SELECT
+        'Subtotal' AS Mes,
+        '2025' AS Ano,
+        
+        -- Total SBC/Barueri (formatado)
+        regexp_replace(
+            format('%.2f', 
+                SUM(CASE 
+                    WHEN filial = 'sbc' OR filial = 'barueri' 
+                    THEN total 
+                    ELSE 0 
+                END)
+            ), 
+            '(\d)(?=(\d{3})+\.)', 
+            '$1'
+        ) AS SBC,
+        
+        -- Total Extrema (formatado)
+        regexp_replace(
+            format('%.2f', 
+                SUM(CASE 
+                    WHEN filial = 'extrema' 
+                    THEN total 
+                    ELSE 0 
+                END)
+            ), 
+            '(\d)(?=(\d{3})+\.)', 
+            '$1'
+        ) AS Extrema,
+        
+        -- Total Serra (formatado)
+        regexp_replace(
+            format('%.2f', 
+                SUM(CASE 
+                    WHEN filial = 'serra' 
+                    THEN total 
+                    ELSE 0 
+                END)
+            ), 
+            '(\d)(?=(\d{3})+\.)', 
+            '$1'
+        ) AS Serra,
+        
+        -- Total Geral de Todas as Filiais (formatado)
+        regexp_replace(
+            format('%.2f', SUM(total)), 
+            '(\d)(?=(\d{3})+\.)', 
+            '$1'
+        ) AS Total_RS,
+        
+        -- Campo para ordenação (total por último)
+        3 AS ordem
+
+    FROM datalake_gold.orders_channel
+    WHERE 
+        -- Mesmo período da primeira parte
+        purchased_at >= TIMESTAMP '2024-07-01 00:00:00'
+        AND purchased_at <= CURRENT_TIMESTAMP
+        AND authorized_at IS NOT NULL
+        AND cancelled_at IS NULL
+
+    UNION ALL
+
+    -- ==========================================
+    -- PARTE 4: LINHA DE TOTAL GERAL
+    -- ==========================================
+    SELECT
+        'Total Faturamento' AS Mes,
+        '' AS Ano,
+        
+        -- Total SBC/Barueri (formatado)
+        regexp_replace(
+            format('%.2f', 
+                SUM(CASE 
+                    WHEN filial = 'sbc' OR filial = 'barueri' 
+                    THEN total 
+                    ELSE 0 
+                END)
+            ), 
+            '(\d)(?=(\d{3})+\.)', 
+            '$1'
+        ) AS SBC,
+        
+        -- Total Extrema (formatado)
+        regexp_replace(
+            format('%.2f', 
+                SUM(CASE 
+                    WHEN filial = 'extrema' 
+                    THEN total 
+                    ELSE 0 
+                END)
+            ), 
+            '(\d)(?=(\d{3})+\.)', 
+            '$1'
+        ) AS Extrema,
+        
+        -- Total Serra (formatado)
+        regexp_replace(
+            format('%.2f', 
+                SUM(CASE 
+                    WHEN filial = 'serra' 
+                    THEN total 
+                    ELSE 0 
+                END)
+            ), 
+            '(\d)(?=(\d{3})+\.)', 
+            '$1'
+        ) AS Serra,
+        
+        -- Total Geral de Todas as Filiais (formatado)
+        regexp_replace(
+            format('%.2f', SUM(total)), 
+            '(\d)(?=(\d{3})+\.)', 
+            '$1'
+        ) AS Total_RS,
+        
+        -- Campo para ordenação (total por último)
+        4 AS ordem
+
+    FROM datalake_gold.orders_channel
+    WHERE 
+        -- Mesmo período da primeira parte
+        purchased_at >= TIMESTAMP '2024-07-01 00:00:00'
+        AND purchased_at <= CURRENT_TIMESTAMP
+        AND authorized_at IS NOT NULL
+        AND cancelled_at IS NULL
+
+) dados
+
+-- ==========================================
+-- ORDENAÇÃO FINAL
+-- ==========================================
+ORDER BY
+    -- Primeiro: dados mensais (ordem = 1), depois total (ordem = 2)
+    ordem,
+    -- Segundo: ordenação cronológica por ano
+    Ano,
+    -- Terceiro: ordenação cronológica por mês
+    CASE Mes
+        WHEN 'Janeiro' THEN 1
+        WHEN 'Fevereiro' THEN 2
+        WHEN 'Março' THEN 3
+        WHEN 'Abril' THEN 4
+        WHEN 'Maio' THEN 5
+        WHEN 'Junho' THEN 6
+        WHEN 'Julho' THEN 7
+        WHEN 'Agosto' THEN 8
+        WHEN 'Setembro' THEN 9
+        WHEN 'Outubro' THEN 10
+        WHEN 'Novembro' THEN 11
+        WHEN 'Dezembro' THEN 12
+        ELSE 99 -- Para a linha "Total Faturamento"
+    END;
