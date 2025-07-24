@@ -1,3 +1,10 @@
+-- =====================================================
+-- Query: Relatório de Faturamento Mensal por Filial
+-- Descrição: Gera relatório mensal de faturamento por filial
+--           com linha de totalização geral
+-- SGBD: MySQL
+-- =====================================================
+
 SELECT 
     Mes, 
     Ano, 
